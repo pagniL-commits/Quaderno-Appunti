@@ -1,78 +1,224 @@
-<html>
+<!DOCTYPE html>
+<html lang="it">
     <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Gatti</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
         <style>
+            :root{
+                --sfondo: #ece8fb;
+                --testo: #2b2140;
+                --giallo: #ffc93c;
+                --menta: #8fe3c0;
+                --bianco: #ffffff;
+                --grigio: #8b82a3;
+            }
+
+            *{
+                box-sizing: border-box;
+            }
+
             body{
-                padding: 20px;
+                margin: 0;
+                padding: 24px 16px 40px;
                 text-align: center;
+                background-color: var(--sfondo);
+                color: var(--testo);
+                font-family: "Fredoka", "Trebuchet MS", sans-serif;
             }
-            img{
-                max-width: 60%;
+
+            h1{
+                margin: 0 0 4px;
+                font-size: 2.6rem;
+                font-weight: 600;
             }
+
+            .sottotitolo{
+                margin: 0 0 20px;
+                color: var(--grigio);
+            }
+
+            .bottoni{
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
             button{
-                padding: 5px;
-                margin: 20px;
-                background-color: blueviolet;
-                border: 1px solid black;
-                border-radius: 3px;
-                font-size: 20px;
+                padding: 10px 22px;
+                border: 3px solid var(--testo);
+                border-radius: 999px;
+                font-family: inherit;
+                font-size: 1.1rem;
+                font-weight: 500;
+                color: var(--testo);
+                cursor: pointer;
+                box-shadow: 0 4px 0 var(--testo);
+            }
+
+            button:active:not(:disabled){
+                transform: translateY(3px);
+                box-shadow: 0 1px 0 var(--testo);
+            }
+
+            button:focus-visible{
+                outline: 3px solid var(--testo);
+                outline-offset: 3px;
+            }
+
+            #nuovo-gatto{
+                background-color: var(--giallo);
+            }
+
+            #salva-gatto{
+                background-color: var(--menta);
+            }
+
+            button:disabled{
+                background-color: #d9d4e8;
+                border-color: var(--grigio);
+                color: var(--grigio);
+                box-shadow: 0 4px 0 var(--grigio);
+                cursor: not-allowed;
+            }
+
+            #messaggio{
+                min-height: 1.6em;
+                margin: 0 0 12px;
+                font-weight: 500;
+            }
+
+            .cornice{
+                display: inline-block;
+                max-width: 100%;
+                padding: 12px;
+                background-color: var(--bianco);
+                border: 3px solid var(--testo);
+                border-radius: 20px;
+            }
+
+            #gatto-img{
+                display: block;
+                max-width: 100%;
+                max-height: 50vh;
+                border-radius: 10px;
+            }
+
+            h2{
+                margin: 36px 0 12px;
+                font-size: 1.5rem;
+                font-weight: 500;
             }
 
             #gatti-salvati{
-                border: 5px solid black;
-                padding: 10px;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 14px;
+                background-color: var(--bianco);
+                border: 3px dashed var(--testo);
+                border-radius: 20px;
 
                 display: flex;
                 justify-content: center;
                 flex-wrap: wrap;
+                gap: 10px;
             }
 
             #gatti-salvati img{
-                margin: 5px;
                 height: 100px;
+                border: 3px solid var(--testo);
+                border-radius: 12px;
             }
 
+            #vuoto{
+                margin: 0;
+                color: var(--grigio);
+            }
         </style>
     </head>
 
     <body>
-        <div>
-            <button id="nuovo-gatto"> Nuovo Gatto</button> </br>
-            <button id="salva-gatto"> Salva Gatto</button> </br>
+        <h1> Gatti</h1>
+        <p class="sottotitolo">Trova i tuoi gatti preferiti e salvali nella collezione.</p>
+
+        <div class="bottoni">
+            <button id="nuovo-gatto">Nuovo gatto</button>
+            <button id="salva-gatto" disabled>Salva gatto</button>
         </div>
-        <img id="gatto-img" src="" alt="">
 
+        <p id="messaggio" role="status"></p>
+
+        <div class="cornice">
+            <img id="gatto-img" src="" alt="Un gatto">
+        </div>
+
+        <h2>La mia collezione</h2>
         <div id="gatti-salvati">
-
+            <p id="vuoto">Nessun gatto salvato. Premi "Salva gatto" per aggiungerne uno.</p>
         </div>
 
         <script>
             const imgTag = document.getElementById("gatto-img");
             const bottone = document.getElementById("nuovo-gatto");
+            const salva = document.getElementById("salva-gatto");
+            const messaggio = document.getElementById("messaggio");
+            const gattiSalvati = document.getElementById("gatti-salvati");
+            const vuoto = document.getElementById("vuoto");
+
+            let urlCorrente = "";
+            const urlSalvati = new Set();
 
             bottone.addEventListener("click", function(){
                 getCat();
             });
 
-            const gattiSalvati = document.getElementById("gatti-salvati");
-            
-            const salva = document.getElementById("salva-gatto");
-            salva.addEventListener("click", () =>{
+            salva.addEventListener("click", () => {
+                // Controllo duplicati
+                if(!urlCorrente || urlSalvati.has(urlCorrente)){
+                    aggiornaBottoneSalva();
+                    return;
+                }
+
                 const newImg = document.createElement("img");
-                newImg.src = imgTag.src;
+                newImg.src = urlCorrente;
+                newImg.alt = "Gatto salvato";
                 gattiSalvati.appendChild(newImg);
-            })
+
+                urlSalvati.add(urlCorrente);
+                vuoto.style.display = "none";
+                messaggio.textContent = "Gatto salvato! ";
+                aggiornaBottoneSalva(true);
+            });
+
+            // Disattiva "Salva gatto" se il gatto è già in collezione
+            function aggiornaBottoneSalva(mantieniMessaggio){
+                const giaSalvato = urlSalvati.has(urlCorrente);
+                salva.disabled = !urlCorrente || giaSalvato;
+                salva.textContent = giaSalvato ? "Già salvato ✓" : "Salva gatto";
+                if(giaSalvato && !mantieniMessaggio){
+                    messaggio.textContent = "Questo gatto è già nella tua collezione.";
+                }
+            }
 
             async function getCat(){
                 const url = "https://cataas.com/cat/gif?json=true";
+                messaggio.textContent = "";
+                salva.disabled = true;
                 try{
                     const response = await fetch(url);
                     console.log("RISPOSTA", response);
                     const data = await response.json();
                     console.log("DATI", data);
+                    urlCorrente = data.url;
                     imgTag.src = data.url;
+                    aggiornaBottoneSalva();
                 } catch(e){
                     console.log("ERRORE", e.message);
+                    messaggio.textContent = "Non riesco a caricare il gatto. Riprova con \"Nuovo gatto\".";
                 }
             }
             getCat();
